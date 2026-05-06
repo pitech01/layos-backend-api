@@ -1,0 +1,66 @@
+# Increase upload limits for large videos - Shared Hosting compatibility
+<IfModule mod_php.c>
+    php_value upload_max_filesize 1024M
+    php_value post_max_size 1024M
+    php_value max_execution_time 600
+    php_value max_input_time 600
+    php_value memory_limit 1024M
+</IfModule>
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 1024M
+    php_value post_max_size 1024M
+    php_value max_execution_time 6000
+    php_value max_input_time 6000
+    php_value memory_limit 1024M
+</IfModule>
+
+# For some servers that limit the request body
+<IfModule mod_core.c>
+    LimitRequestBody 536870912
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    Options +FollowSymLinks +SymLinksIfOwnerMatch
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Handle X-XSRF-Token Header
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Handle Video Content & CORS for Shared Hosting
+<IfModule mod_headers.c>
+    <FilesMatch "\.(mp4|m4v|webm|ogv|mov|avi|mkv)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, OPTIONS"
+        Header set Access-Control-Allow-Headers "Range"
+        Header set Access-Control-Expose-Headers "Content-Length, Content-Range"
+    </FilesMatch>
+</IfModule>
+
+# Ensure correct MIME types for videos
+AddType video/mp4 .mp4
+AddType video/webm .webm
+AddType video/ogg .ogv
+AddType video/quicktime .mov
+AddType video/x-matroska .mkv
+AddType video/x-msvideo .avi
